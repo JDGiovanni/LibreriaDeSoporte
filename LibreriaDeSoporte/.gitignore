@@ -1,0 +1,9 @@
+# Ignorar carpetas completas de compilación y temporales
+**/target/
+**/.rustc_info.json
+**/.cargo-lock
+**/bin-*
+**/lib-*
+**/*.json
+**/invoked.timestamp
+**/dep-*
