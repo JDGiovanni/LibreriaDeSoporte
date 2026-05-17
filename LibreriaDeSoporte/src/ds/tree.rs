@@ -20,11 +20,6 @@ impl NodoArbol {
         Box::new(NodoArbol::Suma(hijos))
     }
 
-    // Compatibilidad binaria; el menú migrará a agregar_sumando en 3/3
-    pub fn nueva_suma(izq: Box<NodoArbol>, der: Box<NodoArbol>) -> Box<Self> {
-        Self::nueva_suma_naria(vec![izq, der])
-    }
-
     // Añade un sumando: extiende el nodo Suma raíz o crea uno nuevo
     pub fn agregar_sumando(arbol: Box<Self>, sumando: Box<Self>) -> Box<Self> {
         match *arbol {
@@ -35,16 +30,30 @@ impl NodoArbol {
             _ => Box::new(NodoArbol::Suma(vec![arbol, sumando])),
         }
     }
+
+    // Muestra la estructura de forma legible (un nivel de suma plano)
+    pub fn mostrar(&self, indent: usize) {
+        let prefijo = "  ".repeat(indent);
+        match self {
+            NodoArbol::Numero(n) => println!("{}Numero({})", prefijo, n),
+            NodoArbol::Suma(hijos) => {
+                println!("{}Suma [{} sumandos]", prefijo, hijos.len());
+                for hijo in hijos {
+                    hijo.mostrar(indent + 1);
+                }
+            }
+        }
+    }
 }
 
 pub fn main() {
     let mut arbol = NodoArbol::nuevo_numero(0);
 
     loop {
-        println!("\n===Gestor de Árbol de Sumas ===");
-        println!("1. Nuevo Número (Reiniciar)");
-        println!("2. Sumar al Árbol (Árbol Actual + Nuevo Número)");
-        println!("3. Ver Estructura");
+        println!("\n=== Gestor de Árbol de Sumas (n-ario) ===");
+        println!("1. Nuevo número (reiniciar)");
+        println!("2. Añadir sumando (mismo nodo Suma si ya existe)");
+        println!("3. Ver estructura");
         println!("4. Salir");
 
         let mut opcion = String::new();
@@ -74,13 +83,14 @@ pub fn main() {
 
                 if let Ok(n) = val.trim().parse::<i32>() {
                     let nuevo_nodo = NodoArbol::nuevo_numero(n);
-                    arbol = NodoArbol::nueva_suma(arbol, nuevo_nodo);
-                    println!("Suma añadida.");
+                    // Usa API n-aria: varios sumandos bajo un solo Suma
+                    arbol = NodoArbol::agregar_sumando(arbol, nuevo_nodo);
+                    println!("Sumando añadido al árbol n-ario.");
                 }
             }
             "3" => {
                 println!("\nEstructura actual:");
-                println!("{:?}", arbol);
+                arbol.mostrar(0);
             }
             "4" => break,
             _ => println!("Opción no válida"),
