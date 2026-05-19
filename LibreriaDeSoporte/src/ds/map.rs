@@ -1,8 +1,15 @@
 use std::collections::HashMap;
 use std::io;
+use std::process;
 
 pub fn main() {
-    let mut notas = HashMap::new();
+
+    let mut map_inicial = HashMap::new();
+    map_inicial.insert("Diseño de Compiladores".to_string(), 20);
+    map_inicial.insert("Programacion Visual".to_string(), 19);
+    map_inicial.insert("Sistemas Operativos".to_string(), 18);
+
+    let mut notas = map_inicial;
 
     loop {
         println!("\n== MENÚ ==");
@@ -35,13 +42,15 @@ pub fn main() {
                     .read_line(&mut nota)
                     .expect("Error");
 
-                let nota: i32 = nota.trim().parse().expect("Debe ser un número");
+                let nota: i32 = nota
+                    .trim()
+                    .parse()
+                    .expect("Debe ser un número");
 
                 notas.insert(materia.trim().to_string(), nota);
 
                 println!("Materia añadida correctamente");
             }
-
             "2" => {
                 let mut materia = String::new();
 
@@ -57,7 +66,6 @@ pub fn main() {
                     None => println!("No existe esa materia"),
                 }
             }
-
             "3" => {
                 let mut materia = String::new();
 
@@ -73,20 +81,15 @@ pub fn main() {
                     None => println!("No existe esa materia"),
                 }
             }
-
             "4" => {
                 println!("\n===== NOTAS =====");
-
                 for (materia, nota) in &notas {
                     println!("{} -> {}", materia, nota);
                 }
             }
-
             "5" => {
-                println!("Saliendo...");
-                break;
+                process::exit(0);
             }
-
             _ => {
                 println!("Opción inválida");
             }
