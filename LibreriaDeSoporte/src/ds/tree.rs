@@ -5,6 +5,8 @@ use std::io;
 #[derive(Debug)]
 pub enum NodoArbol {
     Numero(i32),
+    Cadena(String),
+    Token(String),
     // N sumandos en un solo nodo (ya no izq/der fijos)
     Suma(Vec<Box<NodoArbol>>),
 }
@@ -12,6 +14,14 @@ pub enum NodoArbol {
 impl NodoArbol {
     pub fn nuevo_numero(valor: i32) -> Box<Self> {
         Box::new(NodoArbol::Numero(valor))
+    }
+
+    pub fn nueva_cadena(valor: String) -> Box<Self> {
+        Box::new(NodoArbol::Cadena(valor))
+    }
+
+    pub fn nuevo_token(valor: String) -> Box<Self> {
+        Box::new(NodoArbol::Token(valor))
     }
 
     // Crea suma con uno o más hijos
@@ -36,6 +46,8 @@ impl NodoArbol {
         let prefijo = "  ".repeat(indent);
         match self {
             NodoArbol::Numero(n) => println!("{}Numero({})", prefijo, n),
+            NodoArbol::Cadena(texto) => println!("{}Cadena(\"{}\")", prefijo, texto),
+            NodoArbol::Token(token) => println!("{}Token({})", prefijo, token),
             NodoArbol::Suma(hijos) => {
                 println!("{}Suma [{} sumandos]", prefijo, hijos.len());
                 for hijo in hijos {
@@ -46,13 +58,40 @@ impl NodoArbol {
     }
 }
 
+fn leer_nodo_desde_entrada(prompt: &str) -> Option<Box<NodoArbol>> {
+    println!("{}", prompt);
+    println!("Formato: num:10 | str:hola | tok:IDENT");
+    let mut val = String::new();
+    io::stdin().read_line(&mut val).ok()?;
+    let entrada = val.trim();
+
+    if let Some(num) = entrada.strip_prefix("num:") {
+        if let Ok(n) = num.trim().parse::<i32>() {
+            return Some(NodoArbol::nuevo_numero(n));
+        }
+        println!("Número inválido.");
+        return None;
+    }
+
+    if let Some(texto) = entrada.strip_prefix("str:") {
+        return Some(NodoArbol::nueva_cadena(texto.trim().to_string()));
+    }
+
+    if let Some(token) = entrada.strip_prefix("tok:") {
+        return Some(NodoArbol::nuevo_token(token.trim().to_string()));
+    }
+
+    println!("Entrada inválida. Usa num:, str: o tok:");
+    None
+}
+
 pub fn main() {
     let mut arbol = NodoArbol::nuevo_numero(0);
 
     loop {
         println!("\n=== Gestor de Árbol de Sumas (n-ario) ===");
-        println!("1. Nuevo número (reiniciar)");
-        println!("2. Añadir sumando (mismo nodo Suma si ya existe)");
+        println!("1. Nuevo nodo base (reiniciar)");
+        println!("2. Añadir nodo (num, str o tok)");
         println!("3. Ver estructura");
         println!("4. Salir");
 
@@ -64,28 +103,16 @@ pub fn main() {
 
         match opcion {
             "1" => {
-                println!("Introduce el nuevo número:");
-                let mut val = String::new();
-                io::stdin()
-                    .read_line(&mut val)
-                    .unwrap();
-                if let Ok(n) = val.trim().parse::<i32>() {
-                    arbol = NodoArbol::nuevo_numero(n);
-                    println!("Árbol reiniciado con {}", n);
+                if let Some(nodo) = leer_nodo_desde_entrada("Introduce el nodo base:") {
+                    arbol = nodo;
+                    println!("Árbol reiniciado.");
                 }
             }
             "2" => {
-                println!("Introduce el número para sumar:");
-                let mut val = String::new();
-                io::stdin()
-                    .read_line(&mut val)
-                    .unwrap();
-
-                if let Ok(n) = val.trim().parse::<i32>() {
-                    let nuevo_nodo = NodoArbol::nuevo_numero(n);
+                if let Some(nuevo_nodo) = leer_nodo_desde_entrada("Introduce el nodo a añadir:") {
                     // Usa API n-aria: varios sumandos bajo un solo Suma
                     arbol = NodoArbol::agregar_sumando(arbol, nuevo_nodo);
-                    println!("Sumando añadido al árbol n-ario.");
+                    println!("Nodo añadido al árbol n-ario.");
                 }
             }
             "3" => {
